@@ -7,23 +7,30 @@ st.title("Sheet Metal Label Generator")
 
 # Font handling
 try:
+    # Try macOS Arial path first
     font_path = "/System/Library/Fonts/Supplemental/Arial.ttf"
     if not os.path.exists(font_path):
-        st.warning("Arial font not found, falling back to Helvetica.")
+        # Fallback for macOS Helvetica
+        st.warning("Arial font not found at /System/Library/Fonts/Supplemental/Arial.ttf, trying Helvetica.")
         font_path = "/System/Library/Fonts/Helvetica.ttc"
     if not os.path.exists(font_path):
-        # On Streamlit Cloud, use a generic fallback or bundled font
-        font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"  # Common Linux font
-        if not os.path.exists(font_path):
-            raise FileNotFoundError("No suitable font found.")
+        # Fallback for Streamlit Cloud or other environments
+        st.warning("Helvetica not found, trying a Linux-compatible font.")
+        font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    if not os.path.exists(font_path):
+        raise FileNotFoundError("No suitable font found on system. Consider bundling Arial.ttf.")
+    
     large_font = ImageFont.truetype(font_path, 154)  # Color title, 154pt
     medium_font = ImageFont.truetype(font_path, 100)  # Material/gauge and status, 100pt
-    st.success("Fonts loaded successfully: 154pt and 100pt.")
+    st.success(f"Fonts loaded successfully from {font_path}: 154pt and 100pt.")
 except Exception as e:
     st.error(f"Font loading error: {e}")
+    # Fallback to default font with reduced sizes if needed (uncomment if Arial fails)
+    # large_font = ImageFont.load_default(size=139)  # ~10% smaller: 154 * 0.9
+    # medium_font = ImageFont.load_default(size=90)  # ~10% smaller: 100 * 0.9
     large_font = ImageFont.load_default()
     medium_font = ImageFont.load_default()
-    st.warning("Using default font; sizes may be smaller than expected.")
+    st.warning("Using default font; sizes may be smaller than expected. Consider bundling Arial.ttf.")
 
 # Color mappings
 color_map = {
@@ -136,8 +143,8 @@ if st.button("Generate Label"):
     draw.rectangle([459, status_y, 1650, status_y + 105], fill=status_color)
     draw.text((459, status_y + 5), status_text, font=medium_font, fill="white")
 
-    # Display the image
-    st.image(image, caption="Generated Label", use_column_width=True)
+    # Display the image with updated parameter
+    st.image(image, caption="Generated Label", use_container_width=True)
 
     # Download button
     img_buffer = image.save("label.png", "PNG", quality=100)
