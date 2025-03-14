@@ -7,16 +7,15 @@ st.title("Sheet Metal Label Generator")
 
 # Font handling
 try:
-    # Use Helvetica as the primary font
     font_path = "/System/Library/Fonts/Helvetica.ttc"
     if not os.path.exists(font_path):
         st.warning("Helvetica not found at /System/Library/Fonts/Helvetica.ttc, falling back to DejaVu Sans.")
         font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     if not os.path.exists(font_path):
         raise FileNotFoundError("No suitable font found.")
-    large_font = ImageFont.truetype(font_path, 145)  # Color title, set to 145pt
-    medium_font = ImageFont.truetype(font_path, 100)  # Material/gauge and status, set to 100pt
-    st.success(f"Fonts loaded successfully from {font_path}: 145pt and 100pt.")
+    large_font = ImageFont.truetype(font_path, 160)  # Color title, increased to 160pt
+    medium_font = ImageFont.truetype(font_path, 100)  # Material/gauge and status, 100pt
+    st.success(f"Fonts loaded successfully from {font_path}: 160pt and 100pt.")
 except Exception as e:
     st.error(f"Font loading error: {e}")
     large_font = ImageFont.load_default()
@@ -92,50 +91,51 @@ def draw_gradient(draw, x, y, width, height, colors):
 
 # Generate and display label
 if st.button("Generate Label"):
-    width, height = 1650, 570
+    width, height = 1650, 586  # Increased height by 16px (8px original + 8px additional) for top margin
     image = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(image)
 
-    # Color block
+    # Color block, shifted down 16px
     if color == "Other" and custom_color_rgb:
-        draw.rectangle([0, 0, 449, 550], fill=custom_color_rgb)
+        draw.rectangle([0, 16, 449, 566], fill=custom_color_rgb)
         color_text = custom_color or "Unknown"
     elif color == "Mill Finish" and mill_finish_image:
         img = Image.open(mill_finish_image).resize((449, 550))
-        image.paste(img, (0, 0))
+        image.paste(img, (0, 16))
         color_text = "Mill Finish"
     else:
         color_text = color
         if color in color_map:
             if color_map[color] == "gradient":
-                draw_gradient(draw, 0, 0, 449, 550, gradient_map[color])
+                draw_gradient(draw, 0, 16, 449, 550, gradient_map[color])
             else:
-                draw.rectangle([0, 0, 449, 550], fill=color_map[color])
-    draw.rectangle([0, 0, 449, 550], outline="black", width=5)
+                draw.rectangle([0, 16, 449, 566], fill=color_map[color])
+    draw.rectangle([0, 16, 449, 566], outline="black", width=5)
 
     # Text area with simulated bold
     material_text = f"{gauge} {material}".strip()
     status_text = project if status == "Reserved" and project else status
     status_color = (95, 178, 34) if status == "Open" else (0, 99, 150)
 
-    # Color title (145pt, bolder)
-    x, y = 459, 0
+    # Color title (160pt, bolder), moved down 20px + 16px margin
+    x, y = 459, 36  # y=0 + 20 (shift) + 16 (margin) = 36
     for offset_x in [-2, -1, 0, 1, 2]:
         for offset_y in [-2, -1, 0, 1, 2]:
             draw.text((x + offset_x, y + offset_y), color_text, font=large_font, fill="black")
-    draw.line([(459, 320), (1650, 320)], fill="black", width=5)  # Divider
-    # Material/gauge (100pt) above status
-    x, y = 459, 330
+    draw.line([(459, 336), (1650, 336)], fill="black", width=5)  # Divider, shifted down 16px
+    # Material/gauge (100pt) above status, shifted down 16px
+    x, y = 459, 346  # y=330 + 16 = 346
     for offset_x in [-1, 0, 1]:
         for offset_y in [-1, 0, 1]:
             draw.text((x + offset_x, y + offset_y), material_text, font=medium_font, fill="black")
-    # Status block
-    status_y = 440
+    # Status block, shifted down 16px
+    status_y = 456  # y=440 + 16 = 456
     draw.rectangle([459, status_y, 1650, status_y + 105], fill=status_color)
     draw.text((459, status_y + 5), status_text, font=medium_font, fill="white")
 
-    # Display the image with updated parameter
-    st.image(image, caption="Generated Label", use_container_width=True)
+    # Display the image with centered styling
+    with st.container():
+        st.image(image, caption="Generated Label", use_container_width=True)
 
     # Download button
     img_buffer = image.save("label.png", "PNG", quality=100)
