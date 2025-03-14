@@ -13,7 +13,7 @@ try:
         font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     if not os.path.exists(font_path):
         raise FileNotFoundError("No suitable font found.")
-    large_font = ImageFont.truetype(font_path, 160)  # Color title, increased to 160pt
+    large_font = ImageFont.truetype(font_path, 145)  # Color title, increased to 160pt
     medium_font = ImageFont.truetype(font_path, 100)  # Material/gauge and status, 100pt
     st.success(f"Fonts loaded successfully from {font_path}: 160pt and 100pt.")
 except Exception as e:
