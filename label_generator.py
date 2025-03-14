@@ -7,30 +7,21 @@ st.title("Sheet Metal Label Generator")
 
 # Font handling
 try:
-    # Try macOS Arial path first
-    font_path = "/System/Library/Fonts/Supplemental/Arial.ttf"
+    # Use Helvetica as the primary font
+    font_path = "/System/Library/Fonts/Helvetica.ttc"
     if not os.path.exists(font_path):
-        # Fallback for macOS Helvetica
-        st.warning("Arial font not found at /System/Library/Fonts/Supplemental/Arial.ttf, trying Helvetica.")
-        font_path = "/System/Library/Fonts/Helvetica.ttc"
-    if not os.path.exists(font_path):
-        # Fallback for Streamlit Cloud or other environments
-        st.warning("Helvetica not found, trying a Linux-compatible font.")
+        st.warning("Helvetica not found at /System/Library/Fonts/Helvetica.ttc, falling back to DejaVu Sans.")
         font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     if not os.path.exists(font_path):
-        raise FileNotFoundError("No suitable font found on system. Consider bundling Arial.ttf.")
-    
-    large_font = ImageFont.truetype(font_path, 154)  # Color title, 154pt
-    medium_font = ImageFont.truetype(font_path, 100)  # Material/gauge and status, 100pt
-    st.success(f"Fonts loaded successfully from {font_path}: 154pt and 100pt.")
+        raise FileNotFoundError("No suitable font found.")
+    large_font = ImageFont.truetype(font_path, 145)  # Color title, set to 145pt
+    medium_font = ImageFont.truetype(font_path, 100)  # Material/gauge and status, set to 100pt
+    st.success(f"Fonts loaded successfully from {font_path}: 145pt and 100pt.")
 except Exception as e:
     st.error(f"Font loading error: {e}")
-    # Fallback to default font with reduced sizes if needed (uncomment if Arial fails)
-    # large_font = ImageFont.load_default(size=139)  # ~10% smaller: 154 * 0.9
-    # medium_font = ImageFont.load_default(size=90)  # ~10% smaller: 100 * 0.9
     large_font = ImageFont.load_default()
     medium_font = ImageFont.load_default()
-    st.warning("Using default font; sizes may be smaller than expected. Consider bundling Arial.ttf.")
+    st.warning("Using default font; sizes may be smaller than expected.")
 
 # Color mappings
 color_map = {
@@ -127,7 +118,7 @@ if st.button("Generate Label"):
     status_text = project if status == "Reserved" and project else status
     status_color = (95, 178, 34) if status == "Open" else (0, 99, 150)
 
-    # Color title (154pt, bolder)
+    # Color title (145pt, bolder)
     x, y = 459, 0
     for offset_x in [-2, -1, 0, 1, 2]:
         for offset_y in [-2, -1, 0, 1, 2]:
